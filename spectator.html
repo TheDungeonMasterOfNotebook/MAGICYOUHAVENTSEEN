@@ -54,8 +54,8 @@ async function pollPrediction(){
   const res = await fetch("/.netlify/functions/sendPrediction");
   const data = await res.json();
   if(data.card){
-    cardImg.src = "placeholder_card.png"; // always use placeholder
-    cardName.textContent = data.card.replace(/_/g, ' ');
+    cardImg.src = "placeholder_card.png"; // placeholder image
+    cardName.textContent = data.card.replace(/_/g,' ');
     notif.classList.add('show');
     setTimeout(()=> notif.classList.remove('show'), 3000);
   }
