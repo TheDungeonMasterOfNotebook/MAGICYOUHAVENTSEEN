@@ -28,13 +28,6 @@ const ranks = ['ace','2','3','4','5','6','7','8','9','10','jack','queen','king']
 const cards = [];
 for(let s of suits){ for(let r of ranks){ cards.push(`${r}_of_${s}`); } }
 
-// keywords repeat per suit
-const baseKeywords = ['one','two','three','four','five','six','seven','eight','nine','ten','jack','queen','king'];
-const keywords = [];
-for(let i=0;i<suits.length;i++){ keywords.push(...baseKeywords); }
-
-let lastIndex = 0;
-
 async function sendPrediction(card){
   await fetch("/.netlify/functions/sendPrediction", {
     method:"POST",
@@ -43,17 +36,7 @@ async function sendPrediction(card){
   });
 }
 
-// Map spoken word to next card
-function mapSpokenToCard(spoken){
-  for(let i=lastIndex;i<keywords.length;i++){
-    if(keywords[i] === spoken.toLowerCase()){
-      lastIndex = i+1;
-      return cards[i];
-    }
-  }
-  return null;
-}
-
+// Recognize numbers only
 let recognition;
 if('webkitSpeechRecognition' in window){
   recognition = new webkitSpeechRecognition();
@@ -63,12 +46,14 @@ if('webkitSpeechRecognition' in window){
 
   recognition.onstart = ()=> status.textContent = "Listening...";
   recognition.onresult = async (e)=>{
-    const spoken = e.results[0][0].transcript.trim().toLowerCase();
-    status.textContent = `Heard: "${spoken}"`;
-    const card = mapSpokenToCard(spoken);
-    if(card){
+    const spoken = e.results[0][0].transcript.trim();
+    const cardNumber = parseInt(spoken);
+    if(!isNaN(cardNumber) && cardNumber >=1 && cardNumber <=52){
+      const card = cards[cardNumber - 1];
       await sendPrediction(card);
-      status.textContent = `Prediction sent: ${card}`;
+      status.textContent = `Prediction sent: ${card} (spoken: ${spoken})`;
+    } else {
+      status.textContent = `Unrecognized number: "${spoken}"`;
     }
   };
   recognition.onerror = e=> status.textContent = "Error: "+e.error;
