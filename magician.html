@@ -22,21 +22,36 @@ header { padding:14px; background:#f6e6b4; text-align:center; font-weight:600; }
 <script>
 const status = document.getElementById('status');
 
-// 52 cards
+// 52 cards: clubs → hearts → spades → diamonds
 const suits = ['clubs','hearts','spades','diamonds'];
 const ranks = ['ace','2','3','4','5','6','7','8','9','10','jack','queen','king'];
 const cards = [];
 for(let s of suits){ for(let r of ranks){ cards.push(`${r}_of_${s}`); } }
 
-// Mapping spoken words to card numbers
-const keywords = ['one','two','three','four','five','six','seven','eight','nine','ten','jack','queen','king'];
+// keywords repeat per suit
+const baseKeywords = ['one','two','three','four','five','six','seven','eight','nine','ten','jack','queen','king'];
+const keywords = [];
+for(let i=0;i<suits.length;i++){ keywords.push(...baseKeywords); }
+
+let lastIndex = 0;
 
 async function sendPrediction(card){
   await fetch("/.netlify/functions/sendPrediction", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ card })
   });
+}
+
+// Map spoken word to next card
+function mapSpokenToCard(spoken){
+  for(let i=lastIndex;i<keywords.length;i++){
+    if(keywords[i] === spoken.toLowerCase()){
+      lastIndex = i+1;
+      return cards[i];
+    }
+  }
+  return null;
 }
 
 let recognition;
@@ -50,10 +65,8 @@ if('webkitSpeechRecognition' in window){
   recognition.onresult = async (e)=>{
     const spoken = e.results[0][0].transcript.trim().toLowerCase();
     status.textContent = `Heard: "${spoken}"`;
-
-    const index = keywords.indexOf(spoken);
-    if(index >=0){
-      const card = cards[index];
+    const card = mapSpokenToCard(spoken);
+    if(card){
       await sendPrediction(card);
       status.textContent = `Prediction sent: ${card}`;
     }
