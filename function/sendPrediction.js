@@ -1,4 +1,3 @@
-// Serverless function to store latest card prediction
 let latestPrediction = null;
 
 exports.handler = async (event) => {
