@@ -30,7 +30,8 @@ header { padding:14px; background:#f6e6b4; text-align:center; font-weight:600; }
   opacity:0;
 }
 #notif.show { top:50px; opacity:1; }
-#notif a { color:#007aff; text-decoration:none; margin-top:8px; font-weight:600; font-size:16px; }
+#notif img { width:100px; margin-top:8px; border-radius:8px; }
+#notif div { margin-top:6px; font-weight:600; }
 </style>
 </head>
 <body>
@@ -40,18 +41,21 @@ header { padding:14px; background:#f6e6b4; text-align:center; font-weight:600; }
 
 <div id="notif">
   🔔 New Card!
-  <a id="link" href="#" target="_blank">View Card</a>
+  <img id="cardImg" src="placeholder_card.png">
+  <div id="cardName">Card Name</div>
 </div>
 
 <script>
 const notif = document.getElementById('notif');
-const link = document.getElementById('link');
+const cardImg = document.getElementById('cardImg');
+const cardName = document.getElementById('cardName');
 
 async function pollPrediction(){
   const res = await fetch("/.netlify/functions/sendPrediction");
   const data = await res.json();
   if(data.card){
-    link.href = `/predictions/${encodeURIComponent(data.card)}.jpg`; // path to your card image
+    cardImg.src = "placeholder_card.png"; // always use placeholder
+    cardName.textContent = data.card.replace(/_/g, ' ');
     notif.classList.add('show');
     setTimeout(()=> notif.classList.remove('show'), 3000);
   }
